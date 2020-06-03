@@ -1,0 +1,8 @@
+{
+	"cookie": "clientid=x; did=xx; client_key=xxx; ...",
+    "saveFolder": "D:\\Downloads\\{user_name}",
+	"fileName": "{video_id}.mp4",
+	"tasks": [
+        "lolxingchen"
+	]
+}
