@@ -4,7 +4,7 @@ import time
 
 if __name__ == '__main__':
     # 读取配置
-    with open(r'config.json', "r") as file:
+    with open(r'config.json', "r", encoding='utf-8') as file:
         content = file.read()
         print(content)
         config = json.loads(content)
