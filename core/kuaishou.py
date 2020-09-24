@@ -2,7 +2,7 @@
 import requests
 import time
 import os
-
+import re
 
 class Kuaishou:
 
@@ -27,6 +27,19 @@ class Kuaishou:
             'Referer': 'https://live.kuaishou.com/profile/%s' % self.user_id,
             'Cookie': self.cookie
         }
+        self.noWaterMarkHeaders = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Host": "kphbeijing.m.chenzhongtech.com",
+            'Connection': 'keep-alive',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            "User-Agent": "Mozilla/5.0 (Android 9.0; Mobile; rv:68.0) Gecko/68.0 Firefox/68.0",
+            'Cookie': self.cookie
+        }
+        self.session = requests.Session()
+        self.session.headers.update(self.noWaterMarkHeaders)  
     
     def download(self, url, fileName=None, folder=None):
         if (not fileName) or fileName.find('{default}') > -1:
@@ -59,17 +72,25 @@ class Kuaishou:
             time.sleep(5)
     
     def getUrl(self, user_id, video_id):
-        url = "https://live.kuaishou.com/m_graphql"
-        param = '{"operationName":"SharePageQuery","variables":{"photoId":"%s",\
-        "principalId":"%s"},"query":"query SharePageQuery($principalId: String, $photoId: String)\
-         {\\n  feedById(principalId: $principalId, photoId: $photoId) {\\n    currentWork {\\n      playUrl\\n\
-         __typename\\n    }\\n    __typename\\n  }\\n}\\n"}' % (video_id, user_id)
-        data = requests.post(url, timeout=30, headers=self.headers, data=param)
-        data = data.json()['data']
-        '''
-        此处容易报错，应该是对请求的频率有限制
-        '''
-        url = data['feedById']['currentWork']['playUrl']
+#         url = "https://live.kuaishou.com/m_graphql"
+#         param = '{"operationName":"SharePageQuery","variables":{"photoId":"%s",\
+#         "principalId":"%s"},"query":"query SharePageQuery($principalId: String, $photoId: String)\
+#          {\\n  feedById(principalId: $principalId, photoId: $photoId) {\\n    currentWork {\\n      playUrl\\n\
+#          __typename\\n    }\\n    __typename\\n  }\\n}\\n"}' % (video_id, user_id)
+#         data = requests.post(url, timeout=30, headers=self.headers, data=param)
+#         data = data.json()['data']
+#         '''
+#         此处容易报错，应该是对请求的频率有限制
+#         '''
+#         print(video_id)
+#         url = data['feedById']['currentWork']['playUrl']
+#         return url
+        # 去水印版本 出错时请使用水印版本
+        url = "https://kphbeijing.m.chenzhongtech.com/fw/photo/%s" %video_id
+        res = self.session.get(url, timeout=30)
+        print(video_id)
+        searchObj = re.search(r'srcNoMark":"(http[^"]*)', res.text)
+        url = searchObj.group(1)
         return url
         
     def getVideos(self):
